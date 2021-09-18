@@ -1,11 +1,15 @@
 package egger.software.spring
 
-import org.springframework.http.HttpStatus
+import org.springframework.hateoas.CollectionModel
+import org.springframework.hateoas.EntityModel
+import org.springframework.hateoas.PagedModel
+import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo
+import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn
 import org.springframework.stereotype.Repository
 import org.springframework.web.bind.annotation.*
 
-
 data class Flight(val id: Long, val number: String, val from: String, val to: String)
+data class Passanger(val id: Long, val name: String)
 
 @Repository
 class FlightRepository {
@@ -21,9 +25,28 @@ class FlightRepository {
 @RestController
 class FlightController(private val repository: FlightRepository) {
 
+    val Flight.entityModel: EntityModel<Flight>
+        get() = EntityModel.of(
+            this, linkTo(methodOn(FlightController::class.java).one(id)).withSelfRel(),
+            linkTo(methodOn(FlightController::class.java).all()).withRel("flights")
+        )
+
     @GetMapping("/flights")
-    fun all(): List<Flight> {
-        return repository.flights
+    fun all(): CollectionModel<EntityModel<Flight>> {
+        return CollectionModel.of(
+            repository.flights.map { it.entityModel },
+            linkTo(methodOn(FlightController::class.java).all()).withSelfRel()
+        )
+    }
+
+    @GetMapping("/flights/page/{page}")
+    fun page(@PathVariable page: Long): PagedModel<EntityModel<Flight>> {
+        val size = 2L
+        return PagedModel.of(
+            repository.flights.drop((size * (page - 1)).toInt()).take(size.toInt()).map { it.entityModel },
+            PagedModel.PageMetadata(size, page, repository.flights.count().toLong()),
+            linkTo(methodOn(FlightController::class.java).all()).withSelfRel()
+        )
     }
 
     @PostMapping("/flights")
@@ -35,8 +58,12 @@ class FlightController(private val repository: FlightRepository) {
     }
 
     @GetMapping("/flights/{id}")
-    fun one(@PathVariable id: Long): Flight {
-        return repository.flights.firstOrNull() { it.id == id } ?: throw FlightNotFoundException(id)
+    fun one(@PathVariable id: Long): EntityModel<Flight> {
+        return EntityModel.of(
+            repository.flights.first { it.id == id },
+            linkTo(methodOn(FlightController::class.java).one(id)).withSelfRel(),
+            linkTo(methodOn(FlightController::class.java).all()).withRel("flights")
+        )
     }
 
     @PutMapping("/flights/{id}")
@@ -58,14 +85,3 @@ class FlightController(private val repository: FlightRepository) {
 
 }
 
-class FlightNotFoundException(id: Long) : RuntimeException("Flight $id not found")
-
-@ControllerAdvice
-internal class FlightNotFoundAdvice {
-    @ResponseBody
-    @ExceptionHandler(FlightNotFoundException::class)
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    fun employeeNotFoundHandler(ex: FlightNotFoundException): String? {
-        return ex.message
-    }
-}
