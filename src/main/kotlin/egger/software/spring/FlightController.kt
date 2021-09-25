@@ -1,39 +1,40 @@
 package egger.software.spring
 
+import org.springframework.data.repository.CrudRepository
 import org.springframework.web.bind.annotation.*
 import java.util.*
 
 @RestController
-class FlightController(private val flightMapper: FlightMapper) {
+class FlightController(private val repository: FlightRepository) {
 
     @GetMapping("/flights")
-    fun all(): List<Flight> {
-        return flightMapper.findAll()
+    fun all(): MutableIterable<Flight> {
+        return repository.findAll()
     }
 
     @GetMapping("/flights/{id}")
-    fun one(@PathVariable id: Long): Flight {
-        return flightMapper.findById(id)
+    fun one(@PathVariable id: Long): Optional<Flight> {
+        return repository.findById(id);
     }
 
     @PostMapping("/flights")
-    fun newFlight(@RequestBody newFlight: Flight) {
-        flightMapper.save(newFlight);
+    fun newFlight(@RequestBody newFlight: Flight): Flight? {
+        return repository.save(newFlight);
     }
 
     @PutMapping("/flights/{id}")
-    fun replaceFlight(@RequestBody newFlight: Flight, @PathVariable id: Long) {
-        flightMapper.update(newFlight.copy(id = id))
+    fun replaceFlight(@RequestBody newFlight: Flight, @PathVariable id: Long): Flight? {
+        return repository.save(newFlight.copy(id = id))
     }
 
     @DeleteMapping("/flights/{id}")
     fun deleteFlight(@PathVariable id: Long) {
-        flightMapper.deleteById(id)
+        repository.deleteById(id)
     }
 
     @GetMapping("/flights/flight")
     fun findByNumber(@RequestParam number: String): List<Flight> {
-        return flightMapper.findByNumber(number)
+        return repository.findByNumber(number)
     }
 
 }
