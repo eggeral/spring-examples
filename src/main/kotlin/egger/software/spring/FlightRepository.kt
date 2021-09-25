@@ -2,12 +2,13 @@ package egger.software.spring
 
 import org.springframework.data.annotation.Id
 import org.springframework.data.repository.PagingAndSortingRepository
+import org.springframework.data.rest.core.annotation.RepositoryRestResource
 import org.springframework.stereotype.Repository
 
 
 data class Flight(@Id val id: Long, val number: String, val from: String, val to: String)
 
-@Repository
+@RepositoryRestResource
 interface FlightRepository : PagingAndSortingRepository<Flight, Long> {
     fun findByNumber(number: String): List<Flight>
 
