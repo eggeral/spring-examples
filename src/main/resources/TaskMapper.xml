@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="customTask">
+
+    <resultMap id="customTaskResultMap" type="egger.software.spring.TaskDTO">
+        <id property="id" column="tID_" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <select id="selectTasksForRegion" resultMap="customTaskResultMap" parameterType="org.camunda.bpm.engine.impl.db.ListQueryParameterObject">
+        select distinct
+        T.ID_ as tID_
+        from ${prefix}ACT_RU_TASK T
+    </select>
+
+</mapper>
