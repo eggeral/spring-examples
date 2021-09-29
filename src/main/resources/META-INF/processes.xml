@@ -1,0 +1,8 @@
+<process-application xmlns="http://www.camunda.org/schema/1.0/ProcessApplication">
+    <process-archive name="included">
+        <properties>
+            <property name="resourceRootPath">bpmn</property>
+            <property name="additionalResourceSuffixes">html</property>
+        </properties>
+    </process-archive>
+</process-application>
